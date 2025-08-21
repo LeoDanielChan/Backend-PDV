@@ -1,0 +1,361 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/infrastructure/database/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model archivo {
+  archivo_id Int        @id @default(autoincrement())
+  url        String     @db.VarChar(255)
+  nombre     String?    @db.VarChar(255)
+  tamano     Float?     @db.Float
+  tipo       String?    @db.VarChar(255)
+  productos  productos  @relation(fields: [archivo_id], references: [producto_id], onDelete: NoAction, onUpdate: NoAction, map: "archivo_ibfk_1")
+  usuarios   usuarios[]
+}
+
+model categorias {
+  categoria_id Int         @id @default(autoincrement())
+  nombre       String      @db.VarChar(255)
+  descripcion  String?     @db.VarChar(255)
+  productos    productos[]
+}
+
+model clientes {
+  cliente_id  Int          @id @default(autoincrement())
+  sucursal_id Int?
+  nombre      String       @db.VarChar(255)
+  telefono    String?      @db.VarChar(255)
+  created_at  DateTime     @db.Date
+  update_at   DateTime?    @db.Date
+  deleted_at  DateTime?    @db.Date
+  sucursal    sucursal?    @relation(fields: [sucursal_id], references: [sucursal_id], onDelete: NoAction, onUpdate: NoAction, map: "clientes_ibfk_1")
+  descuentos  descuentos[]
+  stock       stock[]
+  ventas      ventas[]
+
+  @@index([sucursal_id], map: "sucursal_id")
+}
+
+model descuentos {
+  descuento_id Int        @id @default(autoincrement())
+  producto_id  Int?
+  cliente_id   Int?
+  descuento    Int?
+  created_at   DateTime   @db.Date
+  update_at    DateTime?  @db.Date
+  deleted_at   DateTime?  @db.Date
+  productos    productos? @relation(fields: [producto_id], references: [producto_id], onDelete: NoAction, onUpdate: NoAction, map: "descuentos_ibfk_1")
+  clientes     clientes?  @relation(fields: [cliente_id], references: [cliente_id], onDelete: NoAction, onUpdate: NoAction, map: "descuentos_ibfk_2")
+
+  @@index([cliente_id], map: "cliente_id")
+  @@index([producto_id], map: "producto_id")
+}
+
+model detalle_stock {
+  detalle_stock_id Int        @id @default(autoincrement())
+  producto_id      Int?
+  cantidad         Float      @db.Float
+  created_at       DateTime   @db.Date
+  update_at        DateTime?  @db.Date
+  productos        productos? @relation(fields: [producto_id], references: [producto_id], onDelete: NoAction, onUpdate: NoAction, map: "detalle_stock_ibfk_1")
+
+  @@index([producto_id], map: "producto_id")
+}
+
+model detalle_ventas {
+  detalle_venta_id      Int                   @id @default(autoincrement())
+  venta_id              Int
+  producto_id           Int
+  presentacion_id       Int
+  cantidad              Float                 @db.Float
+  precio_final          Float                 @db.Float
+  created_at            DateTime              @db.Date
+  update_at             DateTime?             @db.Date
+  deleted_at            DateTime?             @db.Date
+  ventas                ventas                @relation(fields: [venta_id], references: [venta_id], onDelete: NoAction, onUpdate: NoAction, map: "detalle_ventas_ibfk_1")
+  productos             productos             @relation(fields: [producto_id], references: [producto_id], onDelete: NoAction, onUpdate: NoAction, map: "detalle_ventas_ibfk_2")
+  presentacion_producto presentacion_producto @relation(fields: [presentacion_id], references: [presentacion_id], onDelete: NoAction, onUpdate: NoAction, map: "detalle_ventas_ibfk_3")
+
+  @@index([presentacion_id], map: "presentacion_id")
+  @@index([producto_id], map: "producto_id")
+  @@index([venta_id], map: "venta_id")
+}
+
+model dia {
+  dia_id  Int       @id @default(autoincrement())
+  nombre  String    @db.VarChar(255)
+  horario horario[]
+}
+
+model direccion {
+  direccion_id   Int        @id @default(autoincrement())
+  calle          String     @db.VarChar(255)
+  no_interior    String?    @db.VarChar(255)
+  no_exterior    String?    @db.VarChar(255)
+  codigo_postal  String     @db.VarChar(255)
+  fecha_registro DateTime   @db.Timestamp(0)
+  referencia     String?    @db.Text
+  latitud        String?    @db.VarChar(255)
+  longitud       String?    @db.VarChar(255)
+  sucursal       sucursal[]
+}
+
+model empleado {
+  empleado_id                                     Int       @id @default(autoincrement())
+  id_usuario                                      Int?
+  id_usuario_registro                             Int?
+  id_sucursal                                     Int?
+  sueldo                                          Float?    @db.Float
+  descripcion_puesto                              String?   @db.VarChar(255)
+  fecha_contratacion                              DateTime  @db.Timestamp(0)
+  fecha_baja                                      DateTime? @db.Timestamp(0)
+  fecha_registro                                  DateTime? @db.Timestamp(0)
+  telefono_emergencia                             String?   @db.VarChar(255)
+  periodo_pago                                    String?   @db.VarChar(255)
+  tipo_pago                                       String?   @db.VarChar(255)
+  horas_trabajo                                   DateTime? @db.Time(0)
+  activo                                          Int       @db.SmallInt
+  usuarios_empleado_id_usuarioTousuarios          usuarios? @relation("empleado_id_usuarioTousuarios", fields: [id_usuario], references: [usuario_id], onDelete: NoAction, onUpdate: NoAction, map: "empleado_ibfk_1")
+  usuarios_empleado_id_usuario_registroTousuarios usuarios? @relation("empleado_id_usuario_registroTousuarios", fields: [id_usuario_registro], references: [usuario_id], onDelete: NoAction, onUpdate: NoAction, map: "empleado_ibfk_2")
+  sucursal                                        sucursal? @relation(fields: [id_sucursal], references: [sucursal_id], onDelete: NoAction, onUpdate: NoAction, map: "empleado_ibfk_3")
+
+  @@index([id_sucursal], map: "id_sucursal")
+  @@index([id_usuario], map: "id_usuario")
+  @@index([id_usuario_registro], map: "id_usuario_registro")
+}
+
+model franquicia {
+  franquicia_id  Int        @id @default(autoincrement())
+  id_usuario     Int?
+  fecha_registro DateTime?  @db.Timestamp(0)
+  activo         Boolean?
+  usuarios       usuarios?  @relation(fields: [id_usuario], references: [usuario_id], onDelete: NoAction, onUpdate: NoAction, map: "franquicia_ibfk_1")
+  sucursal       sucursal[]
+
+  @@index([id_usuario], map: "id_usuario")
+}
+
+model horario {
+  horario_id    Int        @id @default(autoincrement())
+  id_dia        Int?
+  hora_apertura DateTime   @db.Time(0)
+  hora_cierre   DateTime   @db.Time(0)
+  estado        Int        @db.SmallInt
+  dia           dia?       @relation(fields: [id_dia], references: [dia_id], onDelete: NoAction, onUpdate: NoAction, map: "horario_ibfk_1")
+  sucursal      sucursal[]
+
+  @@index([id_dia], map: "id_dia")
+}
+
+model pagos {
+  pago_id       Int            @id @default(autoincrement())
+  venta_id      Int?
+  monto         Float?         @db.Float
+  metodo_pago   String?        @db.VarChar(255)
+  fecha_de_pago DateTime?      @db.Date
+  ventas_pagos  ventas_pagos[]
+}
+
+model permiso {
+  id_permiso      Int               @id @default(autoincrement())
+  nombre          String?           @db.VarChar(255)
+  permiso_usuario permiso_usuario[]
+}
+
+model permiso_usuario {
+  id_usuario Int
+  id_permiso Int
+  usuarios   usuarios @relation(fields: [id_usuario], references: [usuario_id], onDelete: NoAction, onUpdate: NoAction, map: "permiso_usuario_ibfk_1")
+  permiso    permiso  @relation(fields: [id_permiso], references: [id_permiso], onDelete: NoAction, onUpdate: NoAction, map: "permiso_usuario_ibfk_2")
+
+  @@id([id_usuario, id_permiso])
+  @@index([id_permiso], map: "id_permiso")
+}
+
+model personas {
+  persona_id       Int        @id @default(autoincrement())
+  nombre           String     @db.VarChar(255)
+  ap_paterno       String?    @db.VarChar(255)
+  ap_materno       String?    @db.VarChar(255)
+  genero           Boolean?
+  fecha_nacimiento DateTime   @db.Date
+  rfc              String?    @db.VarChar(255)
+  ine              String?    @db.VarChar(255)
+  telefono         String?    @db.VarChar(255)
+  usuarios         usuarios[]
+}
+
+model presentacion_producto {
+  presentacion_id      Int              @id @default(autoincrement())
+  producto_id          Int
+  unidad_id            Int
+  precio               Float            @db.Float
+  cantidad_equivalente Float?           @db.Float
+  descripcion          String?          @db.VarChar(255)
+  detalle_ventas       detalle_ventas[]
+  productos            productos        @relation(fields: [producto_id], references: [producto_id], onDelete: NoAction, onUpdate: NoAction, map: "presentacion_producto_ibfk_1")
+  unidad_venta         unidad_venta     @relation(fields: [unidad_id], references: [unidad_id], onDelete: NoAction, onUpdate: NoAction, map: "presentacion_producto_ibfk_2")
+
+  @@index([producto_id], map: "producto_id")
+  @@index([unidad_id], map: "unidad_id")
+}
+
+model productos {
+  producto_id           Int                     @id @default(autoincrement())
+  categoria_id          Int
+  sucursal_id           Int
+  nombre                String                  @db.VarChar(255)
+  primario              Boolean?
+  imagen_url            Int?
+  created_at            DateTime                @db.Date
+  update_at             DateTime?               @db.Date
+  deleted_at            DateTime?               @db.Date
+  archivo               archivo?
+  descuentos            descuentos[]
+  detalle_stock         detalle_stock[]
+  detalle_ventas        detalle_ventas[]
+  presentacion_producto presentacion_producto[]
+  categorias            categorias              @relation(fields: [categoria_id], references: [categoria_id], onDelete: NoAction, onUpdate: NoAction, map: "productos_ibfk_1")
+  sucursal              sucursal                @relation(fields: [sucursal_id], references: [sucursal_id], onDelete: NoAction, onUpdate: NoAction, map: "productos_ibfk_2")
+  stock                 stock[]
+
+  @@index([categoria_id], map: "categoria_id")
+  @@index([sucursal_id], map: "sucursal_id")
+}
+
+model proveedores {
+  proveedor_id Int       @id @default(autoincrement())
+  sucursal_id  Int?
+  nombre       String    @db.VarChar(255)
+  telefono     String?   @db.VarChar(255)
+  created_at   DateTime  @db.Date
+  update_at    DateTime? @db.Date
+  deleted_at   DateTime? @db.Date
+  sucursal     sucursal? @relation(fields: [sucursal_id], references: [sucursal_id], onDelete: NoAction, onUpdate: NoAction, map: "proveedores_ibfk_1")
+  stock        stock[]
+
+  @@index([sucursal_id], map: "sucursal_id")
+}
+
+model stock {
+  stock_id       Int          @id @default(autoincrement())
+  producto_id    Int?
+  origen_id      Int?
+  sucursal_id    Int?
+  tipo_origen    String?      @db.VarChar(255)
+  cantidad       Float?       @db.Float
+  costo          Float?       @db.Float
+  stock_primario Int?
+  created_at     DateTime     @db.Date
+  productos      productos?   @relation(fields: [producto_id], references: [producto_id], onDelete: NoAction, onUpdate: NoAction, map: "stock_ibfk_1")
+  stock          stock?       @relation("stockTostock", fields: [stock_primario], references: [stock_id], onDelete: NoAction, onUpdate: NoAction, map: "stock_ibfk_2")
+  other_stock    stock[]      @relation("stockTostock")
+  proveedores    proveedores? @relation(fields: [origen_id], references: [proveedor_id], onDelete: NoAction, onUpdate: NoAction, map: "stock_ibfk_3")
+  clientes       clientes?    @relation(fields: [origen_id], references: [cliente_id], onDelete: NoAction, onUpdate: NoAction, map: "stock_ibfk_4")
+  sucursal       sucursal?    @relation(fields: [sucursal_id], references: [sucursal_id], onDelete: NoAction, onUpdate: NoAction, map: "stock_ibfk_5")
+
+  @@index([origen_id], map: "origen_id")
+  @@index([producto_id], map: "producto_id")
+  @@index([stock_primario], map: "stock_primario")
+  @@index([sucursal_id], map: "sucursal_id")
+}
+
+model sucursal {
+  sucursal_id   Int           @id @default(autoincrement())
+  id_franquicia Int?
+  id_horario    Int?
+  id_direccion  Int?
+  fecha_de_alta DateTime      @db.Timestamp(0)
+  fecha_de_baja DateTime?     @db.Timestamp(0)
+  telefono      String?       @db.VarChar(255)
+  correo        String?       @db.VarChar(255)
+  activo        Boolean?
+  clientes      clientes[]
+  empleado      empleado[]
+  productos     productos[]
+  proveedores   proveedores[]
+  stock         stock[]
+  franquicia    franquicia?   @relation(fields: [id_franquicia], references: [franquicia_id], onDelete: NoAction, onUpdate: NoAction, map: "sucursal_ibfk_1")
+  direccion     direccion?    @relation(fields: [id_direccion], references: [direccion_id], onDelete: NoAction, onUpdate: NoAction, map: "sucursal_ibfk_2")
+  horario       horario?      @relation(fields: [id_horario], references: [horario_id], onDelete: NoAction, onUpdate: NoAction, map: "sucursal_ibfk_3")
+  ventas        ventas[]
+
+  @@index([id_direccion], map: "id_direccion")
+  @@index([id_franquicia], map: "id_franquicia")
+  @@index([id_horario], map: "id_horario")
+}
+
+model tipo_usuario {
+  tipo_usuario_id Int        @id @default(autoincrement())
+  nombre          String     @db.VarChar(255)
+  usuarios        usuarios[]
+}
+
+model unidad_venta {
+  unidad_id             Int                     @id @default(autoincrement())
+  nombre                String                  @db.VarChar(255)
+  simbolo               String?                 @db.VarChar(255)
+  presentacion_producto presentacion_producto[]
+}
+
+model usuarios {
+  usuario_id                                      Int               @id @default(autoincrement())
+  id_persona                                      Int?
+  id_tipo_usuario                                 Int?
+  id_archivo_perfil                               Int?
+  correo                                          String            @db.VarChar(255)
+  contrasena                                      String            @db.VarChar(255)
+  fecha_registro                                  DateTime          @db.Timestamp(0)
+  fecha_sesion                                    DateTime?         @db.Timestamp(0)
+  activo                                          Boolean?
+  empleado_empleado_id_usuarioTousuarios          empleado[]        @relation("empleado_id_usuarioTousuarios")
+  empleado_empleado_id_usuario_registroTousuarios empleado[]        @relation("empleado_id_usuario_registroTousuarios")
+  franquicia                                      franquicia[]
+  permiso_usuario                                 permiso_usuario[]
+  archivo                                         archivo?          @relation(fields: [id_archivo_perfil], references: [archivo_id], onDelete: NoAction, onUpdate: NoAction, map: "usuarios_ibfk_1")
+  personas                                        personas?         @relation(fields: [id_persona], references: [persona_id], onDelete: NoAction, onUpdate: NoAction, map: "usuarios_ibfk_2")
+  tipo_usuario                                    tipo_usuario?     @relation(fields: [id_tipo_usuario], references: [tipo_usuario_id], onDelete: NoAction, onUpdate: NoAction, map: "usuarios_ibfk_3")
+  ventas                                          ventas[]
+
+  @@index([id_archivo_perfil], map: "id_archivo_perfil")
+  @@index([id_persona], map: "id_persona")
+  @@index([id_tipo_usuario], map: "id_tipo_usuario")
+}
+
+model ventas {
+  venta_id       Int              @id @default(autoincrement())
+  cliente_id     Int?
+  usuario_id     Int
+  sucursal_id    Int?
+  subtotal       Float?           @db.Float
+  descuento      Float?           @db.Float
+  total          Float?           @db.Float
+  estado         String?          @db.VarChar(255)
+  created_at     DateTime         @db.Date
+  update_at      DateTime?        @db.Date
+  deleted_at     DateTime?        @db.Date
+  detalle_ventas detalle_ventas[]
+  clientes       clientes?        @relation(fields: [cliente_id], references: [cliente_id], onDelete: NoAction, onUpdate: NoAction, map: "ventas_ibfk_1")
+  usuarios       usuarios         @relation(fields: [usuario_id], references: [usuario_id], onDelete: NoAction, onUpdate: NoAction, map: "ventas_ibfk_2")
+  sucursal       sucursal?        @relation(fields: [sucursal_id], references: [sucursal_id], onDelete: NoAction, onUpdate: NoAction, map: "ventas_ibfk_3")
+  ventas_pagos   ventas_pagos[]
+
+  @@index([cliente_id], map: "cliente_id")
+  @@index([sucursal_id], map: "sucursal_id")
+  @@index([usuario_id], map: "usuario_id")
+}
+
+model ventas_pagos {
+  id_venta Int
+  id_pago  Int
+  ventas   ventas @relation(fields: [id_venta], references: [venta_id], onDelete: NoAction, onUpdate: NoAction, map: "ventas_pagos_ibfk_1")
+  pagos    pagos  @relation(fields: [id_pago], references: [pago_id], onDelete: NoAction, onUpdate: NoAction, map: "ventas_pagos_ibfk_2")
+
+  @@id([id_venta, id_pago])
+  @@index([id_pago], map: "id_pago")
+}

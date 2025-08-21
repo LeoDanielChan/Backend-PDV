@@ -1,11 +1,9 @@
 import bcrypt from "bcrypt";
 import { env } from "@/config/env";
 
-const SALT_ROUNDS = env.BYCRYPT_SALT_ROUNDS;
-
 export const passwordService = {
   hash: async (plainPassword: string): Promise<string> => {
-    return await bcrypt.hash(plainPassword, SALT_ROUNDS);
+    return await bcrypt.hash(plainPassword, env.BYCRYPT_SALT_ROUNDS);
   },
 
   compare: async (

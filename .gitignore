@@ -1,5 +1,6 @@
 node_modules
 dist
 .env
-/src/generated/prisma
-prisma
+/src/infrastructure/database/generated
+
+DATABASE_URL=mysql://root:cisco%2310@localhost:3306/punto_venta

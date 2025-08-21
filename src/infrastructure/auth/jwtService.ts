@@ -2,19 +2,17 @@ import jwt from "jsonwebtoken";
 import { env } from "@/config/env";
 
 interface JwtPayload {
-  userId: string;
-  role?: string;
+  userId: number;
+  tipo_usuario?: number;
 }
 
-const JWT_SECRET = env.JWT_SECRET;
-const JWT_EXPIRES_IN = "1h";
 
 export const jwtService = {
   sign: (payload: JwtPayload): string => {
-    return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+    return jwt.sign(payload, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRATION} as jwt.SignOptions);
   },
 
   verify: (token: string): JwtPayload => {
-    return jwt.verify(token, JWT_SECRET) as JwtPayload;
+    return jwt.verify(token, env.JWT_SECRET) as JwtPayload;
   },
 };
