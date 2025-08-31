@@ -9,12 +9,9 @@ const authUser = new AuthUser();
 export const login = async (req: Request, res: Response): Promise<any> => {
   try {
     UserLoginValidator.parse(req.body);
-    console.log("Validación de inicio de sesión exitosa", req.body);
     const { correo, contrasena } = req.body;
 
     const result = await authUser.login({ correo, contrasena });
-
-    console.log("Inicio de sesión exitoso:", result);
 
     return res.status(200).json({
       message: "Inicio de sesión exitoso",
@@ -23,7 +20,6 @@ export const login = async (req: Request, res: Response): Promise<any> => {
     });
   } catch (error: any) {
     if (error instanceof ZodError) {
-      console.log("Error de validación:", error.issues);
       return res.status(400).json({
         message: "Campos inválidos",
         errors: error.issues,
@@ -63,7 +59,6 @@ export const register = async (req: Request, res: Response): Promise<any> => {
     if (error && error.status && error.message) {
       return res.status(error.status).json({ message: error.message });
     }
-    console.error("Error al registrar usuario:", error);
     res.status(500).json({
       message: "Error al registrar usuario",
     });

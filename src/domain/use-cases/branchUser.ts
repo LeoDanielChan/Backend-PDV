@@ -1,18 +1,18 @@
+import { timeStringToDate } from "@/utils/timeUtilis";
 import { BranchRepository } from "../repositories/branchRepository";
 import { prisma } from "@/config/prismaClient";
+
+type TimeHHMM = string;
+
+const isValidTime = (time: string): time is TimeHHMM => {
+  const regex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+  return regex.test(time);
+};
 
 class BranchUserUseCase implements BranchRepository {
   async getAllBranches(id_franquicia: number): Promise<any[]> {
     return await prisma.sucursal.findMany({
       where: { franquicia: { franquicia_id: id_franquicia } },
-      include: {
-        direccion: true,
-        horario: true,
-        empleado: true,
-        productos: true,
-        stock: true,
-        franquicia: true,
-      },
     });
   }
 
@@ -34,13 +34,19 @@ class BranchUserUseCase implements BranchRepository {
   }
 
   async createBranch(data: any): Promise<any> {
-    const timeStringToDate = (timeString: string): Date => {
-      const [hours, minutes, seconds] = timeString.split(':').map(Number);
-      const date = new Date();
-      date.setHours(hours, minutes, seconds || 0, 0);
-      date.setFullYear(1970, 0, 1);
-      return date;
-    };
+    if (data.horario) {
+      if (
+        data.horario.hora_apertura &&
+        !isValidTime(data.horario.hora_apertura)
+      ) {
+        console.error('Formato de hora_apertura inválido. Use HH:MM', data.horario.hora_apertura);
+        throw new Error("Formato de hora_apertura inválido. Use HH:MM");
+      }
+      if (data.horario.hora_cierre && !isValidTime(data.horario.hora_cierre)) {
+        console.error('Formato de hora_cierre inválido. Use HH:MM', data.horario.hora_cierre);
+        throw new Error("Formato de hora_cierre inválido. Use HH:MM");
+      }
+    }
 
     return await prisma.sucursal.create({
       data: {
@@ -49,20 +55,24 @@ class BranchUserUseCase implements BranchRepository {
         telefono: data.telefono,
         correo: data.correo,
         franquicia: { connect: { franquicia_id: data.id_franquicia } },
-        direccion: data.direccion ? {
-          create: {
-            ...data.direccion,
-            fecha_registro: new Date()
-          }
-        } : undefined,
-        horario: data.horario ? {
-          create: {
-            hora_apertura: timeStringToDate(data.horario.hora_apertura),
-            hora_cierre: timeStringToDate(data.horario.hora_cierre),
-            estado: data.horario.estado,
-            id_dia: data.horario.id_dia
-          }
-        } : undefined,
+        direccion: data.direccion
+          ? {
+              create: {
+                ...data.direccion,
+                fecha_registro: new Date(),
+              },
+            }
+          : undefined,
+        horario: data.horario
+          ? {
+              create: {
+                hora_apertura: timeStringToDate(data.horario.hora_apertura),
+                hora_cierre: timeStringToDate(data.horario.hora_cierre),
+                estado: data.horario.estado,
+                id_dia: data.horario.id_dia,
+              },
+            }
+          : undefined,
       },
       include: {
         direccion: true,
@@ -73,7 +83,10 @@ class BranchUserUseCase implements BranchRepository {
   }
 
   async updateBranch(branchId: number, data: any): Promise<any> {
-    return await prisma.sucursal.update({ where: { sucursal_id: branchId }, data });
+    return await prisma.sucursal.update({
+      where: { sucursal_id: branchId },
+      data,
+    });
   }
   async deleteBranch(branchId: number): Promise<void> {
     await prisma.sucursal.delete({ where: { sucursal_id: branchId } });
