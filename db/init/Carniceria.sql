@@ -3,7 +3,7 @@ CREATE TABLE `productos` (
   `categoria_id` integer NOT NULL,
   `sucursal_id` integer NOT NULL,
   `nombre` varchar(255) NOT NULL,
-  `primario` bool,
+  `primario` bool NOT NULL,
   `imagen_url` integer,
   `created_at` date NOT NULL,
   `update_at` date,
@@ -27,25 +27,25 @@ CREATE TABLE `presentacion_producto` (
   `producto_id` integer NOT NULL,
   `unidad_id` integer NOT NULL,
   `precio` float NOT NULL,
-  `cantidad_equivalente` float,
+  `cantidad_equivalente` float NOT NULL,
   `descripcion` varchar(255)
 );
 
 CREATE TABLE `stock` (
   `stock_id` integer PRIMARY KEY AUTO_INCREMENT,
-  `producto_id` integer,
+  `producto_id` integer NOT NULL,
   `origen_id` integer,
-  `sucursal_id` integer,
+  `sucursal_id` integer NOT NULL,
   `tipo_origen` varchar(255),
-  `cantidad` float,
-  `costo` float,
+  `cantidad` float NOT NULL,
+  `costo` float NOT NULL,
   `stock_primario` integer,
   `created_at` date NOT NULL
 );
 
 CREATE TABLE `detalle_stock` (
   `detalle_stock_id` integer PRIMARY KEY AUTO_INCREMENT,
-  `producto_id` integer,
+  `producto_id` integer NOT NULL,
   `cantidad` float NOT NULL,
   `created_at` date NOT NULL,
   `update_at` date
@@ -53,7 +53,7 @@ CREATE TABLE `detalle_stock` (
 
 CREATE TABLE `proveedores` (
   `proveedor_id` integer PRIMARY KEY AUTO_INCREMENT,
-  `sucursal_id` integer,
+  `sucursal_id` integer NOT NULL,
   `nombre` varchar(255) NOT NULL,
   `telefono` varchar(255),
   `created_at` date NOT NULL,
@@ -63,7 +63,7 @@ CREATE TABLE `proveedores` (
 
 CREATE TABLE `clientes` (
   `cliente_id` integer PRIMARY KEY AUTO_INCREMENT,
-  `sucursal_id` integer,
+  `sucursal_id` integer NOT NULL,
   `nombre` varchar(255) NOT NULL,
   `telefono` varchar(255),
   `created_at` date NOT NULL,
@@ -75,11 +75,11 @@ CREATE TABLE `ventas` (
   `venta_id` integer PRIMARY KEY AUTO_INCREMENT,
   `cliente_id` integer,
   `usuario_id` integer NOT NULL,
-  `sucursal_id` integer,
-  `subtotal` float,
+  `sucursal_id` integer NOT NULL,
+  `subtotal` float NOT NULL,
   `descuento` float,
-  `total` float,
-  `estado` varchar(255),
+  `total` float NOT NULL,
+  `estado` varchar(255) NOT NULL,
   `created_at` date NOT NULL,
   `update_at` date,
   `deleted_at` date
@@ -87,10 +87,10 @@ CREATE TABLE `ventas` (
 
 CREATE TABLE `pagos` (
   `pago_id` integer PRIMARY KEY AUTO_INCREMENT,
-  `venta_id` integer,
-  `monto` float,
-  `metodo_pago` varchar(255),
-  `fecha_de_pago` date
+  `venta_id` integer NOT NULL,
+  `monto` float NOT NULL,
+  `metodo_pago` varchar(255) NOT NULL,
+  `fecha_de_pago` date NOT NULL
 );
 
 CREATE TABLE `ventas_pagos` (
@@ -113,9 +113,9 @@ CREATE TABLE `detalle_ventas` (
 
 CREATE TABLE `descuentos` (
   `descuento_id` integer PRIMARY KEY AUTO_INCREMENT,
-  `producto_id` integer,
-  `cliente_id` integer,
-  `descuento` integer,
+  `producto_id` integer NOT NULL,
+  `cliente_id` integer NOT NULL,
+  `descuento` integer NOT NULL,
   `created_at` date NOT NULL,
   `update_at` date,
   `deleted_at` date
@@ -131,8 +131,8 @@ CREATE TABLE `archivo` (
 
 CREATE TABLE `usuarios` (
   `usuario_id` integer PRIMARY KEY AUTO_INCREMENT,
-  `id_persona` integer,
-  `id_tipo_usuario` integer,
+  `id_persona` integer NOT NULL,
+  `id_tipo_usuario` integer NOT NULL,
   `id_archivo_perfil` integer,
   `correo` varchar(255) NOT NULL,
   `contrasena` varchar(255) NOT NULL,
@@ -158,17 +158,6 @@ CREATE TABLE `tipo_usuario` (
   `nombre` varchar(255) NOT NULL
 );
 
-CREATE TABLE `permiso` (
-  `id_permiso` integer PRIMARY KEY NOT NULL AUTO_INCREMENT,
-  `nombre` varchar(255)
-);
-
-CREATE TABLE `permiso_usuario` (
-  `id_usuario` integer NOT NULL,
-  `id_permiso` integer NOT NULL,
-  PRIMARY KEY (`id_usuario`, `id_permiso`)
-);
-
 CREATE TABLE `direccion` (
   `direccion_id` integer PRIMARY KEY NOT NULL AUTO_INCREMENT,
   `calle` varchar(255) NOT NULL,
@@ -183,16 +172,17 @@ CREATE TABLE `direccion` (
 
 CREATE TABLE `franquicia` (
   `franquicia_id` integer PRIMARY KEY NOT NULL AUTO_INCREMENT,
-  `id_usuario` integer,
+  `id_usuario` integer NOT NULL,
+  `nombre` varchar(255) NOT NULL,
   `fecha_registro` timestamp,
-  `activo` bool
+  `activo` bool NOT NULL
 );
 
 CREATE TABLE `sucursal` (
   `sucursal_id` integer PRIMARY KEY NOT NULL AUTO_INCREMENT,
-  `id_franquicia` integer,
-  `id_horario` integer,
-  `id_direccion` integer,
+  `id_franquicia` integer NOT NULL,
+  `id_horario` integer NOT NULL,
+  `id_direccion` integer NOT NULL,
   `fecha_de_alta` timestamp NOT NULL,
   `fecha_de_baja` timestamp,
   `telefono` varchar(255),
@@ -202,14 +192,14 @@ CREATE TABLE `sucursal` (
 
 CREATE TABLE `empleado` (
   `empleado_id` integer PRIMARY KEY NOT NULL AUTO_INCREMENT,
-  `id_usuario` integer,
-  `id_usuario_registro` integer,
-  `id_sucursal` integer,
+  `id_usuario` integer NOT NULL,
+  `id_usuario_registro` integer NOT NULL,
+  `id_sucursal` integer NOT NULL,
   `sueldo` float,
   `descripcion_puesto` varchar(255),
   `fecha_contratacion` timestamp NOT NULL,
   `fecha_baja` timestamp,
-  `fecha_registro` timestamp,
+  `fecha_registro` timestamp NOT NULL,
   `telefono_emergencia` varchar(255),
   `periodo_pago` varchar(255),
   `tipo_pago` varchar(255),
@@ -219,7 +209,7 @@ CREATE TABLE `empleado` (
 
 CREATE TABLE `horario` (
   `horario_id` integer PRIMARY KEY NOT NULL AUTO_INCREMENT,
-  `id_dia` integer,
+  `id_dia` integer NOT NULL,
   `hora_apertura` time NOT NULL,
   `hora_cierre` time NOT NULL,
   `estado` smallint NOT NULL
@@ -271,10 +261,6 @@ ALTER TABLE `usuarios` ADD FOREIGN KEY (`id_archivo_perfil`) REFERENCES `archivo
 ALTER TABLE `usuarios` ADD FOREIGN KEY (`id_persona`) REFERENCES `personas` (`persona_id`);
 
 ALTER TABLE `usuarios` ADD FOREIGN KEY (`id_tipo_usuario`) REFERENCES `tipo_usuario` (`tipo_usuario_id`);
-
-ALTER TABLE `permiso_usuario` ADD FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`usuario_id`);
-
-ALTER TABLE `permiso_usuario` ADD FOREIGN KEY (`id_permiso`) REFERENCES `permiso` (`id_permiso`);
 
 ALTER TABLE `franquicia` ADD FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`usuario_id`);
 

@@ -39,11 +39,17 @@ class BranchUserUseCase implements BranchRepository {
         data.horario.hora_apertura &&
         !isValidTime(data.horario.hora_apertura)
       ) {
-        console.error('Formato de hora_apertura inválido. Use HH:MM', data.horario.hora_apertura);
+        console.error(
+          "Formato de hora_apertura inválido. Use HH:MM",
+          data.horario.hora_apertura
+        );
         throw new Error("Formato de hora_apertura inválido. Use HH:MM");
       }
       if (data.horario.hora_cierre && !isValidTime(data.horario.hora_cierre)) {
-        console.error('Formato de hora_cierre inválido. Use HH:MM', data.horario.hora_cierre);
+        console.error(
+          "Formato de hora_cierre inválido. Use HH:MM",
+          data.horario.hora_cierre
+        );
         throw new Error("Formato de hora_cierre inválido. Use HH:MM");
       }
     }
@@ -55,24 +61,20 @@ class BranchUserUseCase implements BranchRepository {
         telefono: data.telefono,
         correo: data.correo,
         franquicia: { connect: { franquicia_id: data.id_franquicia } },
-        direccion: data.direccion
-          ? {
-              create: {
-                ...data.direccion,
-                fecha_registro: new Date(),
-              },
-            }
-          : undefined,
-        horario: data.horario
-          ? {
-              create: {
-                hora_apertura: timeStringToDate(data.horario.hora_apertura),
-                hora_cierre: timeStringToDate(data.horario.hora_cierre),
-                estado: data.horario.estado,
-                id_dia: data.horario.id_dia,
-              },
-            }
-          : undefined,
+        direccion: {
+          create: {
+            ...data.direccion,
+            fecha_registro: new Date(),
+          },
+        },
+        horario: {
+          create: {
+            hora_apertura: timeStringToDate(data.horario.hora_apertura),
+            hora_cierre: timeStringToDate(data.horario.hora_cierre),
+            estado: data.horario.estado,
+            id_dia: data.horario.id_dia,
+          },
+        },
       },
       include: {
         direccion: true,

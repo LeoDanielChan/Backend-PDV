@@ -35,6 +35,7 @@ export const createFranchise = async (
     );
     return res.status(201).json({ franchise: newFranchise });
   } catch (error: any) {
+    console.error(error);
     return res.status(500).json({ message: "Error al crear franquicia" });
   }
 };
