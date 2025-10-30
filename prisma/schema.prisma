@@ -232,24 +232,26 @@ model proveedores {
 }
 
 model stock {
-  stock_id       Int          @id @default(autoincrement())
-  producto_id    Int
-  origen_id      Int?
-  sucursal_id    Int
-  tipo_origen    String?      @db.VarChar(255)
-  cantidad       Float        @db.Float
-  costo          Float        @db.Float
-  stock_primario Int?
-  created_at     DateTime     @db.Date
-  productos      productos    @relation(fields: [producto_id], references: [producto_id], onDelete: NoAction, onUpdate: NoAction, map: "stock_ibfk_1")
-  stock          stock?       @relation("stockTostock", fields: [stock_primario], references: [stock_id], onDelete: NoAction, onUpdate: NoAction, map: "stock_ibfk_2")
-  other_stock    stock[]      @relation("stockTostock")
-  proveedores    proveedores? @relation(fields: [origen_id], references: [proveedor_id], onDelete: NoAction, onUpdate: NoAction, map: "stock_ibfk_3")
-  clientes       clientes?    @relation(fields: [origen_id], references: [cliente_id], onDelete: NoAction, onUpdate: NoAction, map: "stock_ibfk_4")
-  sucursal       sucursal     @relation(fields: [sucursal_id], references: [sucursal_id], onDelete: NoAction, onUpdate: NoAction, map: "stock_ibfk_5")
+  stock_id            Int          @id @default(autoincrement())
+  producto_id         Int
+  cliente_origen_id   Int?
+  proveedor_origen_id Int?
+  sucursal_id         Int
+  tipo_origen         String?      @db.VarChar(255)
+  cantidad            Float        @db.Float
+  costo               Float        @db.Float
+  stock_primario      Int?
+  created_at          DateTime     @db.Date
+  productos           productos    @relation(fields: [producto_id], references: [producto_id], onDelete: NoAction, onUpdate: NoAction, map: "stock_ibfk_1")
+  stock               stock?       @relation("stockTostock", fields: [stock_primario], references: [stock_id], onDelete: NoAction, onUpdate: NoAction, map: "stock_ibfk_2")
+  other_stock         stock[]      @relation("stockTostock")
+  proveedores         proveedores? @relation(fields: [proveedor_origen_id], references: [proveedor_id], onDelete: NoAction, onUpdate: NoAction, map: "stock_ibfk_3")
+  clientes            clientes?    @relation(fields: [cliente_origen_id], references: [cliente_id], onDelete: NoAction, onUpdate: NoAction, map: "stock_ibfk_4")
+  sucursal            sucursal     @relation(fields: [sucursal_id], references: [sucursal_id], onDelete: NoAction, onUpdate: NoAction, map: "stock_ibfk_5")
 
-  @@index([origen_id], map: "origen_id")
+  @@index([cliente_origen_id], map: "cliente_origen_id")
   @@index([producto_id], map: "producto_id")
+  @@index([proveedor_origen_id], map: "proveedor_origen_id")
   @@index([stock_primario], map: "stock_primario")
   @@index([sucursal_id], map: "sucursal_id")
 }

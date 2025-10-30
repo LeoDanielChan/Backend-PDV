@@ -10,13 +10,14 @@ const StockBaseSchema = z.object({
 });
 
 export const PrimaryStockCreateValidator = StockBaseSchema.extend({
-  origen_id: z
+  proveedor_origen_id: z
     .number()
     .int("El ID de origen (Proveedor) debe ser un entero")
     .min(1, "ID de proveedor inválido"),
   tipo_origen: z.literal("Proveedor", {
     message: "El tipo de origen debe ser 'Proveedor'",
   }),
+  cliente_origen_id: z.null().optional(),
   stock_primario: z.null().optional(),
 });
 
@@ -25,10 +26,8 @@ export const DerivedStockCreateValidator = StockBaseSchema.extend({
     .number()
     .int("El ID de stock primario debe ser un entero")
     .min(1, "ID de stock primario inválido"),
-  origen_id: z
-    .number()
-    .int("El ID de origen (Cliente/Proveedor) debe ser un entero")
-    .optional(),
+  proveedor_origen_id: z.null().optional(),
+  cliente_origen_id: z.null().optional(),
   tipo_origen: z.string().optional(),
 });
 

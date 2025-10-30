@@ -25,7 +25,7 @@ export interface IStockDetailedResponse extends stock {
   productos: productos;
   proveedores?: proveedores | null;
   clientes?: clientes | null;
-  stock?: IStockResponse | null; // El stock primario
+  stock?: IStockResponse | null;
 }
 
 export interface IStockResponse extends stock {}

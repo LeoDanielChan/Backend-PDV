@@ -64,7 +64,7 @@ export class SupplierUser implements SupplierRepository {
 
   async deleteSupplier(supplierId: number): Promise<void> {
     const stockCount = await prisma.stock.count({
-      where: { origen_id: supplierId, tipo_origen: "Proveedor" },
+      where: { proveedor_origen_id: supplierId, tipo_origen: "Proveedor" },
     });
 
     if (stockCount > 0) {

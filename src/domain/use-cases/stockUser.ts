@@ -104,16 +104,14 @@ class StockUserUseCase implements StockRepository {
       const primaryData = data as IPrimaryStockCreateRequest;
 
       const providerExists = await prisma.proveedores.findUnique({
-        where: { proveedor_id: primaryData.origen_id },
+        where: { proveedor_id: primaryData.proveedor_origen_id },
       });
-
-      console.log("Verificando existencia del proveedor ID:", primaryData.origen_id);
 
       if (!providerExists) {
         const error: IHttpError = {
           name: "NotFound",
           status: 404,
-          message: `El Proveedor ID ${primaryData.origen_id} no existe.`,
+          message: `El Proveedor ID ${primaryData.proveedor_origen_id} no existe.`,
         };
         throw error;
       }
@@ -126,7 +124,8 @@ class StockUserUseCase implements StockRepository {
           cantidad: primaryData.cantidad,
           costo: primaryData.costo,
           sucursal_id: branchId,
-          origen_id: primaryData.origen_id,
+          proveedor_origen_id: primaryData.proveedor_origen_id,
+          cliente_origen_id: null,
           tipo_origen: primaryData.tipo_origen,
           created_at: new Date(),
         },
