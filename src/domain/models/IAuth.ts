@@ -1,22 +1,23 @@
-export interface ILoginRequest {
+import * as z from 'zod';
+import { UserLoginValidator, UserRegisterValidator } from '@/interfaces/validators/auth.validator';
+
+export type ILoginRequest = z.infer<typeof UserLoginValidator>;
+
+export type IRegisterRequest = z.infer<typeof UserRegisterValidator>;
+
+export interface IAuthUser {
+  userId: number;
   correo: string;
-  contrasena: string;
+  tipo_usuario: number;
 }
 
-export interface IRegisterRequest {
-  persona: {
-    tipo_usuario: number;
-    nombre: string;
-    ap_paterno: string;
-    ap_materno: string;
-    genero: boolean;
-    fecha_nacimiento: Date;
-    rfc: string;
-    ine: string;
-    telefono: string;
-  }
-  usuario: {
-    correo: string;
-    contrasena: string;
-  };
+export interface IAuthResponse {
+  token: string;
+  user: IAuthUser;
+}
+
+export interface IHttpError extends Error {
+  status: number;
+  message: string;
+  name: string;
 }

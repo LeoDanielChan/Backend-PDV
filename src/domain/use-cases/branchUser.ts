@@ -1,26 +1,51 @@
 import { timeStringToDate } from "@/utils/timeUtilis";
 import { BranchRepository } from "../repositories/branchRepository";
 import { prisma } from "@/config/prismaClient";
+import {
+  IBranchCreateRequest,
+  IBranchDetailedResponse,
+  IBranchResponse,
+  IBranchUpdateRequest,
+  IHttpError,
+} from "../models/IBranch";
+
+const getFranchiseIdFromUserId = async (userId: number): Promise<number> => {
+  const franchise = await prisma.franquicia.findFirst({
+    where: { id_usuario: userId },
+    select: { franquicia_id: true },
+  });
+  if (!franchise) {
+    const error: IHttpError = {
+      name: "NotFound",
+      status: 404,
+      message: "No se encontró franquicia asociada al usuario",
+    };
+    throw error;
+  }
+  return franchise.franquicia_id;
+};
 
 type TimeHHMM = string;
 
-const isValidTime = (time: string): time is TimeHHMM => {
-  const regex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
-  return regex.test(time);
-};
-
 class BranchUserUseCase implements BranchRepository {
-  async getAllBranches(id_franquicia: number): Promise<any[]> {
-    return await prisma.sucursal.findMany({
-      where: { franquicia: { franquicia_id: id_franquicia } },
-    });
+  async getAllBranches(userId: number): Promise<IBranchResponse[]> {
+    const franchiseId = await getFranchiseIdFromUserId(userId);
+
+    return (await prisma.sucursal.findMany({
+      where: { id_franquicia: franchiseId },
+    })) as IBranchResponse[];
   }
 
-  async getBranchById(id_franquicia: number, branchId: number): Promise<any> {
-    return await prisma.sucursal.findFirst({
+  async getBranchById(
+    userId: number,
+    branchId: number
+  ): Promise<IBranchDetailedResponse | null> {
+    const franchiseId = await getFranchiseIdFromUserId(userId);
+
+    return (await prisma.sucursal.findFirst({
       where: {
         sucursal_id: branchId,
-        franquicia: { franquicia_id: id_franquicia },
+        id_franquicia: franchiseId,
       },
       include: {
         direccion: true,
@@ -30,31 +55,13 @@ class BranchUserUseCase implements BranchRepository {
         stock: true,
         franquicia: true,
       },
-    });
+    })) as IBranchDetailedResponse | null;
   }
 
-  async createBranch(data: any): Promise<any> {
-    if (data.horario) {
-      if (
-        data.horario.hora_apertura &&
-        !isValidTime(data.horario.hora_apertura)
-      ) {
-        console.error(
-          "Formato de hora_apertura inválido. Use HH:MM",
-          data.horario.hora_apertura
-        );
-        throw new Error("Formato de hora_apertura inválido. Use HH:MM");
-      }
-      if (data.horario.hora_cierre && !isValidTime(data.horario.hora_cierre)) {
-        console.error(
-          "Formato de hora_cierre inválido. Use HH:MM",
-          data.horario.hora_cierre
-        );
-        throw new Error("Formato de hora_cierre inválido. Use HH:MM");
-      }
-    }
-
-    return await prisma.sucursal.create({
+  async createBranch(
+    data: IBranchCreateRequest
+  ): Promise<IBranchDetailedResponse> {
+    return (await prisma.sucursal.create({
       data: {
         fecha_de_alta: new Date(),
         activo: data.activo ?? true,
@@ -63,16 +70,16 @@ class BranchUserUseCase implements BranchRepository {
         franquicia: { connect: { franquicia_id: data.id_franquicia } },
         direccion: {
           create: {
-            ...data.direccion,
+            ...data.direccion!,
             fecha_registro: new Date(),
           },
         },
         horario: {
           create: {
-            hora_apertura: timeStringToDate(data.horario.hora_apertura),
-            hora_cierre: timeStringToDate(data.horario.hora_cierre),
-            estado: data.horario.estado,
-            id_dia: data.horario.id_dia,
+            hora_apertura: timeStringToDate(data.horario!.hora_apertura),
+            hora_cierre: timeStringToDate(data.horario!.hora_cierre),
+            estado: data.horario!.estado,
+            id_dia: data.horario!.id_dia,
           },
         },
       },
@@ -81,15 +88,59 @@ class BranchUserUseCase implements BranchRepository {
         horario: true,
         franquicia: true,
       },
-    });
+    })) as IBranchDetailedResponse;
   }
 
-  async updateBranch(branchId: number, data: any): Promise<any> {
-    return await prisma.sucursal.update({
+  async updateBranch(
+    branchId: number,
+    data: IBranchUpdateRequest
+  ): Promise<IBranchResponse> {
+    const { direccion, horario, id_franquicia, ...sucursalData } = data;
+    const updatePayload: any = {
+      ...sucursalData,
+    };
+
+    if (direccion) {
+      const currentBranch = await prisma.sucursal.findUnique({
+        where: { sucursal_id: branchId },
+        select: { id_direccion: true },
+      });
+
+      if (currentBranch?.id_direccion) {
+        updatePayload.direccion = {
+          update: {
+            ...direccion,
+          },
+        };
+      }
+    }
+
+    if (horario) {
+      const currentBranch = await prisma.sucursal.findUnique({
+        where: { sucursal_id: branchId },
+        select: { id_horario: true },
+      });
+
+      if (currentBranch?.id_horario) {
+        updatePayload.horario = {
+          update: {
+            ...horario,
+            hora_apertura: horario.hora_apertura
+              ? timeStringToDate(horario.hora_apertura)
+              : undefined,
+            hora_cierre: horario.hora_cierre
+              ? timeStringToDate(horario.hora_cierre)
+              : undefined,
+          },
+        };
+      }
+    }
+    return (await prisma.sucursal.update({
       where: { sucursal_id: branchId },
-      data,
-    });
+      data: updatePayload,
+    })) as IBranchResponse;
   }
+  
   async deleteBranch(branchId: number): Promise<void> {
     await prisma.sucursal.delete({ where: { sucursal_id: branchId } });
   }

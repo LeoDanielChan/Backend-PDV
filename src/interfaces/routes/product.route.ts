@@ -1,12 +1,20 @@
 import { Router } from "express";
-import { getAllProducts, getProductById, createProduct, updateProduct, deleteProduct } from "../controllers/product.controller";
+import {
+  getAllProducts,
+  getProductById,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+} from "../controllers/product.controller";
+import { authMiddleware } from "../middleware/authMiddleware";
 
 const productRouter = Router();
 
-productRouter.get("/branches/:branchId/products", getAllProducts);
-productRouter.get("/branches/:branchId/products/:id", getProductById);
-productRouter.post("/branches/:branchId/products", createProduct);
-productRouter.put("/branches/:branchId/products/:id", updateProduct);
-productRouter.delete("/branches/:branchId/products/:id", deleteProduct);
+productRouter.use(authMiddleware);
+productRouter.get("/:branchId", getAllProducts);
+productRouter.get("/:branchId/:id", getProductById);
+productRouter.post("/:branchId", createProduct);
+productRouter.put("/:branchId/:id", updateProduct);
+productRouter.delete("/:branchId/:id", deleteProduct);
 
 export default productRouter;

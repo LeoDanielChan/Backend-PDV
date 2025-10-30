@@ -1,7 +1,14 @@
+import {
+  IBranchResponse,
+  IBranchDetailedResponse,
+  IBranchCreateRequest,
+  IBranchUpdateRequest,
+} from "../models/IBranch";
+
 export interface BranchRepository {
-  getAllBranches(id_franquicia: number): Promise<any[]>;
-  getBranchById(id_franquicia: number, branchId: number): Promise<any>;
-  createBranch(data: any): Promise<any>;
-  updateBranch(branchId: number, data: any): Promise<any>;
+  getAllBranches(userId: number): Promise<IBranchResponse[]>;
+  getBranchById(userId: number, branchId: number): Promise<IBranchDetailedResponse | null>;
+  createBranch(data: IBranchCreateRequest): Promise<IBranchDetailedResponse>;
+  updateBranch(branchId: number, data: IBranchUpdateRequest): Promise<IBranchResponse>;
   deleteBranch(branchId: number): Promise<void>;
 }

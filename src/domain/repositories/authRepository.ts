@@ -1,8 +1,12 @@
-import { ILoginRequest, IRegisterRequest } from "../models/IAuth";
+import {
+  ILoginRequest,
+  IRegisterRequest,
+  IAuthResponse,
+} from "../models/IAuth";
 
 export interface AuthRepository {
-  login({ correo, contrasena }: ILoginRequest): Promise<any>;
-  register(userData: IRegisterRequest): Promise<any>;
+  login(data: ILoginRequest): Promise<IAuthResponse>;
+  register(userData: IRegisterRequest): Promise<IAuthResponse>;
   updateUserPassword(userId: number, newPassword: string): Promise<any>;
   generateAuthToken(userId: number): Promise<string>;
 }

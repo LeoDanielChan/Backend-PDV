@@ -12,6 +12,7 @@ CREATE TABLE `productos` (
 
 CREATE TABLE `categorias` (
   `categoria_id` integer PRIMARY KEY AUTO_INCREMENT,
+  `sucursal_id` integer NOT NULL,
   `nombre` varchar(255) NOT NULL,
   `descripcion` varchar(255)
 );
@@ -34,7 +35,8 @@ CREATE TABLE `presentacion_producto` (
 CREATE TABLE `stock` (
   `stock_id` integer PRIMARY KEY AUTO_INCREMENT,
   `producto_id` integer NOT NULL,
-  `origen_id` integer,
+  `cliente_origen_id` integer,
+  `proveedor_origen_id` integer,
   `sucursal_id` integer NOT NULL,
   `tipo_origen` varchar(255),
   `cantidad` float NOT NULL,
@@ -136,6 +138,7 @@ CREATE TABLE `usuarios` (
   `id_archivo_perfil` integer,
   `correo` varchar(255) NOT NULL,
   `contrasena` varchar(255) NOT NULL,
+  `cambia_contrasena` bool,
   `fecha_registro` timestamp NOT NULL,
   `fecha_sesion` timestamp,
   `activo` bool
@@ -234,9 +237,9 @@ ALTER TABLE `stock` ADD FOREIGN KEY (`stock_primario`) REFERENCES `stock` (`stoc
 
 ALTER TABLE `detalle_stock` ADD FOREIGN KEY (`producto_id`) REFERENCES `productos` (`producto_id`);
 
-ALTER TABLE `stock` ADD FOREIGN KEY (`origen_id`) REFERENCES `proveedores` (`proveedor_id`);
+ALTER TABLE `stock` ADD FOREIGN KEY (`proveedor_origen_id`) REFERENCES `proveedores` (`proveedor_id`);
 
-ALTER TABLE `stock` ADD FOREIGN KEY (`origen_id`) REFERENCES `clientes` (`cliente_id`);
+ALTER TABLE `stock` ADD FOREIGN KEY (`cliente_origen_id`) REFERENCES `clientes` (`cliente_id`);
 
 ALTER TABLE `ventas` ADD FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`cliente_id`);
 
@@ -277,6 +280,8 @@ ALTER TABLE `proveedores` ADD FOREIGN KEY (`sucursal_id`) REFERENCES `sucursal` 
 ALTER TABLE `stock` ADD FOREIGN KEY (`sucursal_id`) REFERENCES `sucursal` (`sucursal_id`);
 
 ALTER TABLE `ventas` ADD FOREIGN KEY (`sucursal_id`) REFERENCES `sucursal` (`sucursal_id`);
+
+ALTER TABLE `categorias` ADD FOREIGN KEY (`sucursal_id`) REFERENCES `sucursal` (`sucursal_id`);
 
 ALTER TABLE `empleado` ADD FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`usuario_id`);
 

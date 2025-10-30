@@ -1,15 +1,25 @@
 import { Request, Response } from "express";
-import { UserLoginValidator, UserRegisterValidator } from "../validators/auth.validator";
+import {
+  UserLoginValidator,
+  UserRegisterValidator,
+} from "../validators/auth.validator";
 import { AuthUser } from "@/domain/use-cases/authUser";
 import { ZodError } from "zod";
-import { IRegisterRequest } from "@/domain/models/IAuth";
+import {
+  IHttpError,
+  ILoginRequest,
+  IRegisterRequest,
+} from "@/domain/models/IAuth";
 
 const authUser = new AuthUser();
 
-export const login = async (req: Request, res: Response): Promise<any> => {
+export const login = async (
+  req: Request<{}, {}, ILoginRequest>,
+  res: Response
+): Promise<any> => {
   try {
-    UserLoginValidator.parse(req.body);
-    const { correo, contrasena } = req.body;
+    const data: ILoginRequest = UserLoginValidator.parse(req.body);
+    const { correo, contrasena } = data;
 
     const result = await authUser.login({ correo, contrasena });
 
@@ -18,7 +28,7 @@ export const login = async (req: Request, res: Response): Promise<any> => {
       token: result.token,
       user: result.user,
     });
-  } catch (error: any) {
+  } catch (error) {
     if (error instanceof ZodError) {
       return res.status(400).json({
         message: "Campos inválidos",
@@ -26,9 +36,12 @@ export const login = async (req: Request, res: Response): Promise<any> => {
       });
     }
 
-    if (error && error.status && error.message) {
-      return res.status(error.status).json({ message: error.message });
+    const httpError = error as IHttpError;
+    if (httpError.status && httpError.message) {
+      return res.status(httpError.status).json({ message: httpError.message });
     }
+
+    console.error("Error en login:", error);
 
     res.status(500).json({
       message: "Error al iniciar sesión",
@@ -36,10 +49,12 @@ export const login = async (req: Request, res: Response): Promise<any> => {
   }
 };
 
-export const register = async (req: Request, res: Response): Promise<any> => {
+export const register = async (
+  req: Request<{}, {}, IRegisterRequest>,
+  res: Response
+): Promise<any> => {
   try {
-    UserRegisterValidator.parse(req.body);
-    const userData: IRegisterRequest = req.body;
+    const userData: IRegisterRequest = UserRegisterValidator.parse(req.body);
 
     const result = await authUser.register(userData);
 
@@ -48,7 +63,7 @@ export const register = async (req: Request, res: Response): Promise<any> => {
       token: result.token,
       user: result.user,
     });
-  } catch (error: any) {
+  } catch (error) {
     if (error instanceof ZodError) {
       return res.status(400).json({
         message: "Campos inválidos",
@@ -56,11 +71,15 @@ export const register = async (req: Request, res: Response): Promise<any> => {
       });
     }
 
-    if (error && error.status && error.message) {
-      return res.status(error.status).json({ message: error.message });
+    const httpError = error as IHttpError;
+    if (httpError.status && httpError.message) {
+      return res.status(httpError.status).json({ message: httpError.message });
     }
+
+    console.error("Error en registro:", error);
+
     res.status(500).json({
-      message: "Error al registrar usuario",
+      message: "Error interno del servidor al registrar usuario",
     });
   }
 };

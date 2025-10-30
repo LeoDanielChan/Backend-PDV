@@ -20,9 +20,13 @@ model archivo {
 
 model categorias {
   categoria_id Int         @id @default(autoincrement())
+  sucursal_id  Int
   nombre       String      @db.VarChar(255)
   descripcion  String?     @db.VarChar(255)
+  sucursal     sucursal    @relation(fields: [sucursal_id], references: [sucursal_id], onDelete: NoAction, onUpdate: NoAction, map: "categorias_ibfk_1")
   productos    productos[]
+
+  @@index([sucursal_id], map: "sucursal_id")
 }
 
 model clientes {
@@ -260,6 +264,7 @@ model sucursal {
   telefono      String?       @db.VarChar(255)
   correo        String?       @db.VarChar(255)
   activo        Boolean?
+  categorias    categorias[]
   clientes      clientes[]
   empleado      empleado[]
   productos     productos[]
@@ -295,6 +300,7 @@ model usuarios {
   id_archivo_perfil                               Int?
   correo                                          String       @db.VarChar(255)
   contrasena                                      String       @db.VarChar(255)
+  cambia_contrasena                               Boolean?
   fecha_registro                                  DateTime     @db.Timestamp(0)
   fecha_sesion                                    DateTime?    @db.Timestamp(0)
   activo                                          Boolean?

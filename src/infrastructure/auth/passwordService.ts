@@ -3,7 +3,11 @@ import { env } from "@/config/env";
 
 export const passwordService = {
   hash: async (plainPassword: string): Promise<string> => {
-    return await bcrypt.hash(plainPassword, env.BYCRYPT_SALT_ROUNDS);
+    const salt = parseInt(env.BYCRYPT_SALT_ROUNDS, 10);
+    if (isNaN(salt)) {
+      throw new Error("BYCRYPT_SALT_ROUNDS no es un número válido.");
+    }
+    return await bcrypt.hash(plainPassword, salt);
   },
 
   compare: async (
