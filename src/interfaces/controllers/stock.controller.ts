@@ -13,143 +13,192 @@ import {
   PrimaryStockCreateValidator,
   DerivedStockCreateValidator,
   StockUpdateValidator,
+  StockEntryValidator,
+  StockProcessValidator,
 } from "../validators/stock.validator";
 
 type StockErrorResponse = { message: string } | IZodErrorResponse;
 
-export const getAllStock = async (
-  req: Request<{ branchId: string }>,
-  res: Response<IStockResponse[] | StockErrorResponse>
-): Promise<any> => {
+
+export const createEntry = async (req: Request, res: Response): Promise<any> => {
+  try {
+    const data = StockEntryValidator.parse(req.body);
+    const result = await stockUserUseCase.createEntry(data);
+    return res.status(201).json(result);
+  } catch (error) {
+    handleError(res, error);
+  }
+};
+
+export const processMeat = async (req: Request, res: Response): Promise<any> => {
+  try {
+    const data = StockProcessValidator.parse(req.body);
+    const result = await stockUserUseCase.processMeat(data);
+    return res.status(200).json(result);
+  } catch (error) {
+    handleError(res, error);
+  }
+};
+
+export const getAll = async (req: Request, res: Response): Promise<any> => {
   try {
     const branchId = Number(req.params.branchId);
-    if (isNaN(branchId))
-      return res.status(400).json({ message: "ID de sucursal inválido" });
-
-    const stock = await stockUserUseCase.getAllStock(branchId);
-    return res.status(200).json(stock);
+    if (isNaN(branchId)) return res.status(400).json({ message: "ID Sucursal inválido" });
+    
+    const result = await stockUserUseCase.getAllByBranch(branchId);
+    return res.status(200).json(result);
   } catch (error) {
-    console.error("Error al obtener stock:", error);
-    return res
-      .status(500)
-      .json({ message: "Error interno del servidor al obtener stock" });
+    handleError(res, error);
   }
 };
 
-export const getStockById = async (
-  req: Request<{ id: string }>,
-  res: Response<IStockDetailedResponse | StockErrorResponse>
-): Promise<any> => {
-  try {
-    const stockId = Number(req.params.id);
-    if (isNaN(stockId))
-      return res.status(400).json({ message: "ID de stock inválido" });
-
-    const stockItem = await stockUserUseCase.getStockById(stockId);
-
-    if (!stockItem) {
-      return res.status(404).json({ message: "Stock no encontrado" });
-    }
-    return res.status(200).json(stockItem);
-  } catch (error) {
-    console.error("Error al obtener stock:", error);
-    return res
-      .status(500)
-      .json({ message: "Error interno del servidor al obtener stock" });
+// Función helper para manejo consistente de errores
+function handleError(res: Response, error: any) {
+  if (error instanceof ZodError) {
+    return res.status(400).json({ message: "Datos inválidos", errors: error.issues });
   }
-};
-
-export const createStock = async (
-  req: Request<{ branchId: string }, {}, any>,
-  res: Response<IStockDetailedResponse | StockErrorResponse>
-): Promise<any> => {
-  try {
-    const branchId = Number(req.params.branchId);
-    if (isNaN(branchId))
-      return res.status(400).json({ message: "ID de sucursal inválido" });
-
-    let data: IStockCreateRequest;
-
-    if (req.body.stock_primario) {
-      data = DerivedStockCreateValidator.parse(req.body);
-    } else {
-      data = PrimaryStockCreateValidator.parse(req.body);
-    }
-    const stockItem = await stockUserUseCase.createStock(branchId, data);
-
-    return res.status(201).json(stockItem);
-  } catch (error) {
-    if (error instanceof ZodError) {
-      return res.status(400).json({
-        message: "Campos inválidos",
-        errors: error.issues,
-      });
-    }
-
-    const httpError = error as IHttpError;
-    if (httpError.status && httpError.message) {
-      return res.status(httpError.status).json({ message: httpError.message });
-    }
-
-    console.error("Error al crear stock:", error);
-    return res
-      .status(500)
-      .json({ message: "Error interno del servidor al crear stock" });
+  if (error.status) {
+    return res.status(error.status).json({ message: error.message });
   }
-};
+  console.error(error);
+  return res.status(500).json({ message: "Error interno del servidor" });
+}
 
-export const updateStock = async (
-  req: Request<{ id: string }, {}, IStockUpdateRequest>,
-  res: Response<IStockResponse | StockErrorResponse>
-): Promise<any> => {
-  try {
-    const stockId = Number(req.params.id);
-    if (isNaN(stockId))
-      return res.status(400).json({ message: "ID de stock inválido" });
 
-    const data: IStockUpdateRequest = StockUpdateValidator.parse(req.body);
-
-    const stockItem = await stockUserUseCase.updateStock(stockId, data);
-    return res.status(200).json(stockItem);
-  } catch (error) {
-    if (error instanceof ZodError) {
-      return res.status(400).json({
-        message: "Campos inválidos",
-        errors: error.issues,
-      });
-    }
-
-    const httpError = error as IHttpError;
-    if (httpError.status && httpError.message) {
-      return res.status(httpError.status).json({ message: httpError.message });
-    }
-
-    console.error("Error al actualizar stock:", error);
-    return res
-      .status(500)
-      .json({ message: "Error interno del servidor al actualizar stock" });
-  }
-};
-
-export const deleteStock = async (
-  req: Request<{ id: string }>,
-  res: Response<void | StockErrorResponse>
-): Promise<any> => {
-  try {
-    const stockId = Number(req.params.id);
-    if (isNaN(stockId))
-      return res.status(400).json({ message: "ID de stock inválido" });
-
-    await stockUserUseCase.deleteStock(stockId);
-    return res.status(204).send();
-  } catch (error) {
-    const httpError = error as IHttpError;
-    if (httpError.status && httpError.message) {
-      return res.status(httpError.status).json({ message: httpError.message });
-    }
-    console.error("Error al eliminar stock:", error);
-    return res
-      .status(500)
-      .json({ message: "Error interno del servidor al eliminar stock" });
-  }
-};
+//export const getAllStock = async (
+//  req: Request<{ branchId: string }>,
+//  res: Response<IStockResponse[] | StockErrorResponse>
+//): Promise<any> => {
+//  try {
+//    const branchId = Number(req.params.branchId);
+//    if (isNaN(branchId))
+//      return res.status(400).json({ message: "ID de sucursal inválido" });
+//
+//    const stock = await stockUserUseCase.getAllStock(branchId);
+//    return res.status(200).json(stock);
+//  } catch (error) {
+//    console.error("Error al obtener stock:", error);
+//    return res
+//      .status(500)
+//      .json({ message: "Error interno del servidor al obtener stock" });
+//  }
+//};
+//
+//export const getStockById = async (
+//  req: Request<{ id: string }>,
+//  res: Response<IStockDetailedResponse | StockErrorResponse>
+//): Promise<any> => {
+//  try {
+//    const stockId = Number(req.params.id);
+//    if (isNaN(stockId))
+//      return res.status(400).json({ message: "ID de stock inválido" });
+//
+//    const stockItem = await stockUserUseCase.getStockById(stockId);
+//
+//    if (!stockItem) {
+//      return res.status(404).json({ message: "Stock no encontrado" });
+//    }
+//    return res.status(200).json(stockItem);
+//  } catch (error) {
+//    console.error("Error al obtener stock:", error);
+//    return res
+//      .status(500)
+//      .json({ message: "Error interno del servidor al obtener stock" });
+//  }
+//};
+//
+//export const createStock = async (
+//  req: Request<{ branchId: string }, {}, any>,
+//  res: Response<IStockDetailedResponse | StockErrorResponse>
+//): Promise<any> => {
+//  try {
+//    const branchId = Number(req.params.branchId);
+//    if (isNaN(branchId))
+//      return res.status(400).json({ message: "ID de sucursal inválido" });
+//
+//    let data: IStockCreateRequest;
+//
+//    if (req.body.stock_primario) {
+//      data = DerivedStockCreateValidator.parse(req.body);
+//    } else {
+//      data = PrimaryStockCreateValidator.parse(req.body);
+//    }
+//    const stockItem = await stockUserUseCase.createStock(branchId, data);
+//
+//    return res.status(201).json(stockItem);
+//  } catch (error) {
+//    if (error instanceof ZodError) {
+//      return res.status(400).json({
+//        message: "Campos inválidos",
+//        errors: error.issues,
+//      });
+//    }
+//
+//    const httpError = error as IHttpError;
+//    if (httpError.status && httpError.message) {
+//      return res.status(httpError.status).json({ message: httpError.message });
+//    }
+//
+//    console.error("Error al crear stock:", error);
+//    return res
+//      .status(500)
+//      .json({ message: "Error interno del servidor al crear stock" });
+//  }
+//};
+//
+//export const updateStock = async (
+//  req: Request<{ id: string }, {}, IStockUpdateRequest>,
+//  res: Response<IStockResponse | StockErrorResponse>
+//): Promise<any> => {
+//  try {
+//    const stockId = Number(req.params.id);
+//    if (isNaN(stockId))
+//      return res.status(400).json({ message: "ID de stock inválido" });
+//
+//    const data: IStockUpdateRequest = StockUpdateValidator.parse(req.body);
+//
+//    const stockItem = await stockUserUseCase.updateStock(stockId, data);
+//    return res.status(200).json(stockItem);
+//  } catch (error) {
+//    if (error instanceof ZodError) {
+//      return res.status(400).json({
+//        message: "Campos inválidos",
+//        errors: error.issues,
+//      });
+//    }
+//
+//    const httpError = error as IHttpError;
+//    if (httpError.status && httpError.message) {
+//      return res.status(httpError.status).json({ message: httpError.message });
+//    }
+//
+//    console.error("Error al actualizar stock:", error);
+//    return res
+//      .status(500)
+//      .json({ message: "Error interno del servidor al actualizar stock" });
+//  }
+//};
+//
+//export const deleteStock = async (
+//  req: Request<{ id: string }>,
+//  res: Response<void | StockErrorResponse>
+//): Promise<any> => {
+//  try {
+//    const stockId = Number(req.params.id);
+//    if (isNaN(stockId))
+//      return res.status(400).json({ message: "ID de stock inválido" });
+//
+//    await stockUserUseCase.deleteStock(stockId);
+//    return res.status(204).send();
+//  } catch (error) {
+//    const httpError = error as IHttpError;
+//    if (httpError.status && httpError.message) {
+//      return res.status(httpError.status).json({ message: httpError.message });
+//    }
+//    console.error("Error al eliminar stock:", error);
+//    return res
+//      .status(500)
+//      .json({ message: "Error interno del servidor al eliminar stock" });
+//  }
+//};
+//

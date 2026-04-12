@@ -38,8 +38,11 @@ CREATE TABLE `stock` (
   `cliente_origen_id` integer,
   `proveedor_origen_id` integer,
   `sucursal_id` integer NOT NULL,
+  `unidad_id` integer NOT NULL,
   `tipo_origen` varchar(255),
   `cantidad` float NOT NULL,
+  `cantidad_actual` float NOT NULL,
+  `estado` varchar(255) DEFAULT 'ACTIVO',
   `costo` float NOT NULL,
   `stock_primario` integer,
   `created_at` date NOT NULL
@@ -93,12 +96,6 @@ CREATE TABLE `pagos` (
   `monto` float NOT NULL,
   `metodo_pago` varchar(255) NOT NULL,
   `fecha_de_pago` date NOT NULL
-);
-
-CREATE TABLE `ventas_pagos` (
-  `id_venta` integer,
-  `id_pago` integer,
-  PRIMARY KEY (`id_venta`, `id_pago`)
 );
 
 CREATE TABLE `detalle_ventas` (
@@ -235,6 +232,8 @@ ALTER TABLE `stock` ADD FOREIGN KEY (`producto_id`) REFERENCES `productos` (`pro
 
 ALTER TABLE `stock` ADD FOREIGN KEY (`stock_primario`) REFERENCES `stock` (`stock_id`);
 
+ALTER TABLE `stock` ADD FOREIGN KEY (`unidad_id`) REFERENCES `unidad_venta` (`unidad_id`);
+
 ALTER TABLE `detalle_stock` ADD FOREIGN KEY (`producto_id`) REFERENCES `productos` (`producto_id`);
 
 ALTER TABLE `stock` ADD FOREIGN KEY (`proveedor_origen_id`) REFERENCES `proveedores` (`proveedor_id`);
@@ -245,9 +244,7 @@ ALTER TABLE `ventas` ADD FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`clie
 
 ALTER TABLE `ventas` ADD FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`usuario_id`);
 
-ALTER TABLE `ventas_pagos` ADD FOREIGN KEY (`id_venta`) REFERENCES `ventas` (`venta_id`);
-
-ALTER TABLE `ventas_pagos` ADD FOREIGN KEY (`id_pago`) REFERENCES `pagos` (`pago_id`);
+ALTER TABLE `pagos` ADD FOREIGN KEY (`venta_id`) REFERENCES `ventas` (`venta_id`);
 
 ALTER TABLE `detalle_ventas` ADD FOREIGN KEY (`venta_id`) REFERENCES `ventas` (`venta_id`);
 

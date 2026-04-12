@@ -3,12 +3,15 @@ import {
   productos,
   proveedores,
   clientes,
+  unidad_venta,
 } from "@/infrastructure/database/generated/prisma";
 import * as z from "zod";
 import {
   PrimaryStockCreateValidator,
   DerivedStockCreateValidator,
   StockUpdateValidator,
+  StockEntryValidator,
+  StockProcessValidator,
 } from "@/interfaces/validators/stock.validator";
 
 export type IPrimaryStockCreateRequest = z.infer<
@@ -18,6 +21,26 @@ export type IPrimaryStockCreateRequest = z.infer<
 export type IDerivedStockCreateRequest = z.infer<
   typeof DerivedStockCreateValidator
 >;
+
+
+export type IStockEntryRequest = z.infer<typeof StockEntryValidator>;
+export type IStockProcessRequest = z.infer<typeof StockProcessValidator>;
+
+export interface IStockDetailed extends stock {
+  productos: productos;
+  unidad_venta: unidad_venta; // Incluimos la unidad para ver si son Kilos o Piezas
+}
+
+export interface IStockProcessResponse {
+  mensaje: string;
+  padre_procesado: {
+    stock_id: number;
+    peso_restante: number;
+    estado: string;
+  };
+  productos_generados: stock[];
+  merma: number;
+}
 
 export type IStockUpdateRequest = z.infer<typeof StockUpdateValidator>;
 

@@ -158,12 +158,14 @@ model horario {
 }
 
 model pagos {
-  pago_id       Int            @id @default(autoincrement())
+  pago_id       Int      @id @default(autoincrement())
   venta_id      Int
-  monto         Float          @db.Float
-  metodo_pago   String         @db.VarChar(255)
-  fecha_de_pago DateTime       @db.Date
-  ventas_pagos  ventas_pagos[]
+  monto         Float    @db.Float
+  metodo_pago   String   @db.VarChar(255)
+  fecha_de_pago DateTime @db.Date
+  ventas        ventas   @relation(fields: [venta_id], references: [venta_id], onDelete: NoAction, onUpdate: NoAction, map: "pagos_ibfk_1")
+
+  @@index([venta_id], map: "venta_id")
 }
 
 model personas {
@@ -237,23 +239,28 @@ model stock {
   cliente_origen_id   Int?
   proveedor_origen_id Int?
   sucursal_id         Int
+  unidad_id           Int
   tipo_origen         String?      @db.VarChar(255)
   cantidad            Float        @db.Float
+  cantidad_actual     Float        @db.Float
+  estado              String?      @default("ACTIVO") @db.VarChar(255)
   costo               Float        @db.Float
   stock_primario      Int?
   created_at          DateTime     @db.Date
   productos           productos    @relation(fields: [producto_id], references: [producto_id], onDelete: NoAction, onUpdate: NoAction, map: "stock_ibfk_1")
   stock               stock?       @relation("stockTostock", fields: [stock_primario], references: [stock_id], onDelete: NoAction, onUpdate: NoAction, map: "stock_ibfk_2")
   other_stock         stock[]      @relation("stockTostock")
-  proveedores         proveedores? @relation(fields: [proveedor_origen_id], references: [proveedor_id], onDelete: NoAction, onUpdate: NoAction, map: "stock_ibfk_3")
-  clientes            clientes?    @relation(fields: [cliente_origen_id], references: [cliente_id], onDelete: NoAction, onUpdate: NoAction, map: "stock_ibfk_4")
-  sucursal            sucursal     @relation(fields: [sucursal_id], references: [sucursal_id], onDelete: NoAction, onUpdate: NoAction, map: "stock_ibfk_5")
+  unidad_venta        unidad_venta @relation(fields: [unidad_id], references: [unidad_id], onDelete: NoAction, onUpdate: NoAction, map: "stock_ibfk_3")
+  proveedores         proveedores? @relation(fields: [proveedor_origen_id], references: [proveedor_id], onDelete: NoAction, onUpdate: NoAction, map: "stock_ibfk_4")
+  clientes            clientes?    @relation(fields: [cliente_origen_id], references: [cliente_id], onDelete: NoAction, onUpdate: NoAction, map: "stock_ibfk_5")
+  sucursal            sucursal     @relation(fields: [sucursal_id], references: [sucursal_id], onDelete: NoAction, onUpdate: NoAction, map: "stock_ibfk_6")
 
   @@index([cliente_origen_id], map: "cliente_origen_id")
   @@index([producto_id], map: "producto_id")
   @@index([proveedor_origen_id], map: "proveedor_origen_id")
   @@index([stock_primario], map: "stock_primario")
   @@index([sucursal_id], map: "sucursal_id")
+  @@index([unidad_id], map: "unidad_id")
 }
 
 model sucursal {
@@ -293,6 +300,7 @@ model unidad_venta {
   nombre                String                  @db.VarChar(255)
   simbolo               String?                 @db.VarChar(255)
   presentacion_producto presentacion_producto[]
+  stock                 stock[]
 }
 
 model usuarios {
@@ -332,22 +340,12 @@ model ventas {
   update_at      DateTime?        @db.Date
   deleted_at     DateTime?        @db.Date
   detalle_ventas detalle_ventas[]
+  pagos          pagos[]
   clientes       clientes?        @relation(fields: [cliente_id], references: [cliente_id], onDelete: NoAction, onUpdate: NoAction, map: "ventas_ibfk_1")
   usuarios       usuarios         @relation(fields: [usuario_id], references: [usuario_id], onDelete: NoAction, onUpdate: NoAction, map: "ventas_ibfk_2")
   sucursal       sucursal         @relation(fields: [sucursal_id], references: [sucursal_id], onDelete: NoAction, onUpdate: NoAction, map: "ventas_ibfk_3")
-  ventas_pagos   ventas_pagos[]
 
   @@index([cliente_id], map: "cliente_id")
   @@index([sucursal_id], map: "sucursal_id")
   @@index([usuario_id], map: "usuario_id")
-}
-
-model ventas_pagos {
-  id_venta Int
-  id_pago  Int
-  ventas   ventas @relation(fields: [id_venta], references: [venta_id], onDelete: NoAction, onUpdate: NoAction, map: "ventas_pagos_ibfk_1")
-  pagos    pagos  @relation(fields: [id_pago], references: [pago_id], onDelete: NoAction, onUpdate: NoAction, map: "ventas_pagos_ibfk_2")
-
-  @@id([id_venta, id_pago])
-  @@index([id_pago], map: "id_pago")
 }
